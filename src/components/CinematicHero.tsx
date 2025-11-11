@@ -1,6 +1,7 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useMemo } from 'react';
 import { motion } from 'motion/react';
 import { Volume2, VolumeX } from 'lucide-react';
+import { useIsMobile } from '../utils/useReducedMotion';
 
 interface CinematicHeroProps {
   videoUrl: string;
@@ -23,28 +24,42 @@ export function CinematicHero({
 }: CinematicHeroProps) {
   const [isMuted, setIsMuted] = useState(true);
   const [isLoaded, setIsLoaded] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
+  const isMobile = useIsMobile(); // Use existing optimized hook
   const videoRef = useRef<HTMLVideoElement>(null);
-
-  // Detect mobile device
-  useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768);
-    };
-    
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
-  }, []);
 
   // Auto-play video when loaded
   useEffect(() => {
-    if (videoRef.current) {
-      videoRef.current.play().catch(() => {
-        // Auto-play might be blocked, that's ok
-        console.log('Auto-play blocked');
-      });
+    if (!videoRef.current) return;
+    
+    let isMounted = true;
+    
+    const playVideo = async () => {
+      try {
+        await videoRef.current?.play();
+      } catch (error) {
+        if (!isMounted) return;
+        
+        if (error instanceof Error) {
+          // Handle specific error types
+          if (error.name === 'NotAllowedError') {
+            // Autoplay was blocked by browser
+            console.log('Auto-play blocked - user interaction required');
+          } else if (error.name === 'NotSupportedError') {
+            console.error('Video format not supported');
+          } else {
+            console.error('Video playback error:', error.message);
+          }
+        }
+      }
+    };
+    
+    if (isLoaded) {
+      playVideo();
     }
+    
+    return () => {
+      isMounted = false;
+    };
   }, [isLoaded]);
 
   const toggleMute = () => {
@@ -54,7 +69,9 @@ export function CinematicHero({
     }
   };
 
-  const currentVideoUrl = isMobile && mobileVideoUrl ? mobileVideoUrl : videoUrl;
+  const videoSource = useMemo(() => {
+    return (isMobile && mobileVideoUrl) ? mobileVideoUrl : videoUrl;
+  }, [isMobile, mobileVideoUrl, videoUrl]);
 
   return (
     <div 
@@ -75,7 +92,7 @@ export function CinematicHero({
         poster={posterImage}
         onLoadedData={() => setIsLoaded(true)}
       >
-        <source src={currentVideoUrl} type="video/mp4" />
+        <source src={videoSource} type="video/mp4" />
         Your browser does not support the video tag.
       </video>
 
@@ -91,16 +108,13 @@ export function CinematicHero({
       {showMuteButton && (
         <motion.button
           onClick={toggleMute}
-          className="absolute top-6 right-6 z-20 p-3 rounded-full backdrop-blur-md transition-all duration-300"
-          style={{
-            backgroundColor: 'rgba(255, 255, 255, 0.2)',
-            border: '1px solid rgba(255, 255, 255, 0.3)'
-          }}
-          whileHover={{ scale: 1.1, backgroundColor: 'rgba(255, 255, 255, 0.3)' }}
+          className="absolute top-6 right-6 z-20 p-3 rounded-full backdrop-blur-md transition-all duration-300 bg-white/20 border border-white/30 hover:bg-white/30"
+          whileHover={{ scale: 1.1 }}
           whileTap={{ scale: 0.95 }}
           initial={{ opacity: 0 }}
           animate={{ opacity: isLoaded ? 1 : 0 }}
           transition={{ delay: 1 }}
+          aria-label={isMuted ? "Unmute video" : "Mute video"}
         >
           {isMuted ? (
             <VolumeX className="w-5 h-5 text-white" />

@@ -42,6 +42,8 @@ export function VideoPlayer({
   const [isMuted, setIsMuted] = useState(autoPlay); // Auto-mute if autoplay
   const [progress, setProgress] = useState(0);
   const [isHovered, setIsHovered] = useState(false);
+  const [isPending, setIsPending] = useState(false);
+  const playPromiseRef = useRef<Promise<void> | null>(null);
 
   useEffect(() => {
     const video = videoRef.current;
@@ -58,42 +60,57 @@ export function VideoPlayer({
     video.addEventListener('ended', handleEnded);
 
     return () => {
+      // Store reference for cleanup
+      const videoElement = video;
+      
       video.removeEventListener('timeupdate', updateProgress);
       video.removeEventListener('ended', handleEnded);
       
-      // Pause video and clear src on unmount to prevent AbortError
-      if (video) {
+      // Cleanup video resources safely
+      requestIdleCallback(() => {
         try {
-          if (!video.paused) {
-            video.pause();
+          if (videoElement && !videoElement.paused) {
+            videoElement.pause();
           }
-          video.src = '';
-          video.load();
+          if (videoElement) {
+            videoElement.src = '';
+            videoElement.load();
+          }
         } catch (e) {
-          // Ignore errors during cleanup
+          // Video already cleaned up or removed
         }
-      }
+      });
     };
   }, []);
 
   const togglePlay = async () => {
     const video = videoRef.current;
-    if (!video) return;
+    if (!video || isPending) return;
 
     try {
+      setIsPending(true);
+      
+      // Wait for any pending operation
+      if (playPromiseRef.current) {
+        await playPromiseRef.current;
+      }
+
       if (isPlaying) {
         video.pause();
         setIsPlaying(false);
       } else {
-        await video.play();
+        playPromiseRef.current = video.play();
+        await playPromiseRef.current;
         setIsPlaying(true);
       }
     } catch (error) {
-      // Handle play interruption errors gracefully
       if (error instanceof Error && error.name !== 'AbortError') {
         console.log('Video playback error:', error.message);
       }
       setIsPlaying(false);
+    } finally {
+      setIsPending(false);
+      playPromiseRef.current = null;
     }
   };
 

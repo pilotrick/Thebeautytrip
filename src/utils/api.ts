@@ -1,6 +1,8 @@
 import { projectId, publicAnonKey } from './supabase/info';
 
-const API_BASE = `https://${projectId}.supabase.co/functions/v1/make-server-1f5586cd`;
+// Use environment variables when available, fallback to imported values for development
+const API_BASE = import.meta.env.VITE_API_BASE || `https://${projectId}.supabase.co/functions/v1/make-server-1f5586cd`;
+const ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || publicAnonKey;
 
 /**
  * Helper function to make authenticated API calls to the backend
@@ -9,25 +11,38 @@ async function apiCall(endpoint: string, options: RequestInit = {}) {
   const url = `${API_BASE}${endpoint}`;
   
   const headers = new Headers(options.headers);
-  headers.set('Authorization', `Bearer ${publicAnonKey}`);
+  headers.set('Authorization', `Bearer ${ANON_KEY}`);
   headers.set('Content-Type', 'application/json');
 
   try {
     const response = await fetch(url, {
       ...options,
       headers,
+      signal: AbortSignal.timeout(10000), // 10s timeout
     });
 
     if (!response.ok) {
-      const errorText = await response.text();
-      console.error(`API Error (${endpoint}):`, errorText);
-      throw new Error(`API call failed: ${response.status} - ${errorText}`);
+      const errorData = await response.json().catch(() => ({ message: 'Unknown error' }));
+      const errorMessage = errorData.message || `API call failed with status ${response.status}`;
+      
+      // Only log in development
+      if (import.meta.env.DEV) {
+        console.error(`API Error (${endpoint}):`, errorMessage);
+      }
+      
+      throw new Error(errorMessage);
     }
 
     return await response.json();
   } catch (error) {
-    console.error(`API call error (${endpoint}):`, error);
-    throw error;
+    if (error instanceof Error) {
+      // Only log in development
+      if (import.meta.env.DEV) {
+        console.error(`API call error (${endpoint}):`, error.message);
+      }
+      throw new Error(`Failed to complete request: ${error.name}`);
+    }
+    throw new Error('An unexpected error occurred');
   }
 }
 
@@ -45,18 +60,31 @@ async function authenticatedApiCall(endpoint: string, accessToken: string, optio
     const response = await fetch(url, {
       ...options,
       headers,
+      signal: AbortSignal.timeout(10000), // 10s timeout
     });
 
     if (!response.ok) {
-      const errorText = await response.text();
-      console.error(`Authenticated API Error (${endpoint}):`, errorText);
-      throw new Error(`Authenticated API call failed: ${response.status} - ${errorText}`);
+      const errorData = await response.json().catch(() => ({ message: 'Unknown error' }));
+      const errorMessage = errorData.message || `Authenticated API call failed with status ${response.status}`;
+      
+      // Only log in development
+      if (import.meta.env.DEV) {
+        console.error(`Authenticated API Error (${endpoint}):`, errorMessage);
+      }
+      
+      throw new Error(errorMessage);
     }
 
     return await response.json();
   } catch (error) {
-    console.error(`Authenticated API call error (${endpoint}):`, error);
-    throw error;
+    if (error instanceof Error) {
+      // Only log in development
+      if (import.meta.env.DEV) {
+        console.error(`Authenticated API call error (${endpoint}):`, error.message);
+      }
+      throw new Error(`Failed to complete authenticated request: ${error.name}`);
+    }
+    throw new Error('An unexpected error occurred');
   }
 }
 

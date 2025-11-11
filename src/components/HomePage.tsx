@@ -23,6 +23,7 @@ import { useIsMobile } from "../utils/useReducedMotion";
 function AnimatedCounter({ end, duration = 2000, suffix = "" }: { end: number; duration?: number; suffix?: string }) {
   const [count, setCount] = useState(0);
   const ref = useRef<HTMLDivElement>(null);
+  const rafIdRef = useRef<number>();
   const isInView = useInView(ref, { once: true, margin: "-100px" });
 
   useEffect(() => {
@@ -39,11 +40,20 @@ function AnimatedCounter({ end, duration = 2000, suffix = "" }: { end: number; d
       setCount(Math.floor(easeOutQuart * end));
 
       if (progress < 1) {
-        requestAnimationFrame(animate);
+        rafIdRef.current = requestAnimationFrame(animate);
+      } else {
+        setCount(end); // Ensure final value is exact
       }
     };
 
-    requestAnimationFrame(animate);
+    rafIdRef.current = requestAnimationFrame(animate);
+    
+    // Cleanup function
+    return () => {
+      if (rafIdRef.current) {
+        cancelAnimationFrame(rafIdRef.current);
+      }
+    };
   }, [isInView, end, duration]);
 
   return (

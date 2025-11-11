@@ -23,6 +23,7 @@ import { Toaster } from "./components/ui/sonner";
 import { SupabaseStatus } from "./components/SupabaseStatus";
 import { getSession } from "./utils/auth";
 import { supabase } from "./utils/supabase/client";
+import { secureStorage, getUserFromStorage } from "./utils/secureStorage";
 
 export interface PackagePreset {
   name: string;
@@ -53,6 +54,9 @@ export default function App() {
 
   // CRITICAL: Scroll Restoration - Always start at top on page load
   useEffect(() => {
+    // Check if window is defined (SSR safety)
+    if (typeof window === 'undefined') return;
+    
     // Force scroll to top on initial mount or page refresh
     window.scrollTo(0, 0);
     
@@ -60,7 +64,7 @@ export default function App() {
     if ('scrollRestoration' in window.history) {
       window.history.scrollRestoration = 'manual';
     }
-  }, []);
+  }, []); // Empty deps is correct here - mount only
 
   // SEO Meta Tags Setup
   useEffect(() => {
@@ -195,13 +199,15 @@ export default function App() {
 
   // Check for existing user session and URL parameters on mount
   useEffect(() => {
+    let isMounted = true;
+    
     // Ensure scroll position at top when checking session
     window.scrollTo(0, 0);
     
     // Check for Supabase session
     const checkSession = async () => {
       const session = await getSession();
-      if (session) {
+      if (session && isMounted) {
         setUserEmail(session.email);
       }
     };
@@ -210,6 +216,7 @@ export default function App() {
 
     // Listen for auth state changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (!isMounted) return;
       if (session?.user) {
         setUserEmail(session.user.email || '');
       } else {
@@ -220,12 +227,13 @@ export default function App() {
     // Check for join group link in URL
     const urlParams = new URLSearchParams(window.location.search);
     const joinParam = urlParams.get('join');
-    if (joinParam) {
+    if (joinParam && isMounted) {
       setJoinGroupId(joinParam);
       setCurrentView('join-group');
     }
 
     return () => {
+      isMounted = false;
       subscription.unsubscribe();
     };
   }, []);
@@ -236,7 +244,7 @@ export default function App() {
       // Prompt if in builder mode, has selections, and no user account
       if (currentView === 'builder' && 
           (selectedProcedures.length > 0 || selectedSpecialist || selectedRetreat) && 
-          !localStorage.getItem('beautyTripUser')) {
+          !getUserFromStorage()) {
         event.preventDefault();
         event.returnValue = 'You have unsaved progress. Would you like to create an account to save your selections?';
         return event.returnValue;
@@ -310,9 +318,9 @@ export default function App() {
     // Store member data and start builder flow
     console.log('Member joined group:', memberData);
     
-    // Save member info to start their individual booking
-    localStorage.setItem('groupMemberId', memberData.groupId);
-    localStorage.setItem('memberInfo', JSON.stringify(memberData));
+    // Save member info to start their individual booking using secure storage
+    secureStorage.set('groupMemberId', memberData.groupId);
+    secureStorage.set('memberInfo', memberData);
     
     // Start builder flow
     setCurrentView('builder');
@@ -366,11 +374,25 @@ export default function App() {
   };
 
   const handleLogout = async () => {
-    await supabase.auth.signOut();
-    localStorage.removeItem('beautyTripUser');
-    setUserEmail('');
-    setCurrentView('home');
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) {
+        console.error('Logout error:', error);
+        throw error;
+      }
+      
+      // Only clear local state if signout succeeded
+      localStorage.removeItem('beautyTripUser');
+      setUserEmail('');
+      setCurrentView('home');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } catch (error) {
+      console.error('Failed to log out:', error);
+      // Still clear local state as fallback
+      localStorage.removeItem('beautyTripUser');
+      setUserEmail('');
+      setCurrentView('home');
+    }
   };
 
   const handleResumeBooking = (journeyId: string) => {
