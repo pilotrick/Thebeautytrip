@@ -24,6 +24,7 @@ import { SupabaseStatus } from "./components/SupabaseStatus";
 import { getSession } from "./utils/auth";
 import { supabase } from "./utils/supabase/client";
 import { secureStorage, getUserFromStorage } from "./utils/secureStorage";
+import { scrollToTop, disableScrollRestoration } from "./utils/scrollUtils";
 
 export interface PackagePreset {
   name: string;
@@ -58,12 +59,10 @@ export default function App() {
     if (typeof window === 'undefined') return;
     
     // Force scroll to top on initial mount or page refresh
-    window.scrollTo(0, 0);
+    scrollToTop(true);
     
     // Disable browser scroll restoration to prevent mid-page landings
-    if ('scrollRestoration' in window.history) {
-      window.history.scrollRestoration = 'manual';
-    }
+    disableScrollRestoration();
   }, []); // Empty deps is correct here - mount only
 
   // SEO Meta Tags Setup
@@ -202,7 +201,7 @@ export default function App() {
     let isMounted = true;
     
     // Ensure scroll position at top when checking session
-    window.scrollTo(0, 0);
+    scrollToTop(true);
     
     // Check for Supabase session
     const checkSession = async () => {
@@ -279,39 +278,39 @@ export default function App() {
       setCurrentStep(1);
     }
     setCurrentView('builder');
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    scrollToTop();
   };
 
   const handleStartTourTripBuilder = () => {
     setIsTourTripBuilder(true);
     setCurrentStep(1); // Start at procedure selection for tour trips
     setCurrentView('builder');
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    scrollToTop();
   };
 
   const handleStartGroupFlow = () => {
     setCurrentView('group-questionnaire');
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    scrollToTop();
   };
 
   const handleGroupSubmit = (data: GroupData) => {
     setGroupData(data);
     // Move to sanctuary selection
     setCurrentView('group-sanctuary');
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    scrollToTop();
   };
 
   const handleGroupSanctuaryComplete = (sanctuaries: string[]) => {
     setSelectedGroupSanctuaries(sanctuaries);
     // Show celebration screen
     setCurrentView('group-celebration');
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    scrollToTop();
   };
 
   const handleAccessGroupPortal = () => {
     // Show thank you screen with portal links
     setCurrentView('group-thankyou');
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    scrollToTop();
   };
 
   const handleMemberJoin = (memberData: MemberJoinData) => {
@@ -325,7 +324,7 @@ export default function App() {
     // Start builder flow
     setCurrentView('builder');
     setCurrentStep(1);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    scrollToTop();
   };
 
   const handleReturnHome = () => {
@@ -337,7 +336,7 @@ export default function App() {
     
     // Clear URL parameters
     window.history.replaceState({}, '', window.location.pathname);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    scrollToTop();
   };
 
   const handleBookingComplete = () => {
@@ -347,30 +346,30 @@ export default function App() {
     } else {
       setCurrentView('booking-confirmed');
     }
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    scrollToTop();
   };
 
   const handleViewSanctuaries = () => {
     setCurrentView('builder');
     setCurrentStep(4); // Go to recovery/villa selection step
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    scrollToTop();
   };
 
   const handleAccessPortal = () => {
     setCurrentView('login');
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    scrollToTop();
   };
 
   const handleTourCelebrationComplete = () => {
     // After tour celebration, go to portal
     setCurrentView('portal');
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    scrollToTop();
   };
 
   const handleLogin = (email: string) => {
     setUserEmail(email);
     setCurrentView('portal');
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    scrollToTop();
   };
 
   const handleLogout = async () => {
@@ -385,7 +384,7 @@ export default function App() {
       localStorage.removeItem('beautyTripUser');
       setUserEmail('');
       setCurrentView('home');
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      scrollToTop();
     } catch (error) {
       console.error('Failed to log out:', error);
       // Still clear local state as fallback
@@ -400,7 +399,7 @@ export default function App() {
     console.log('Resuming journey:', journeyId);
     setCurrentView('builder');
     setCurrentStep(5);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    scrollToTop();
   };
 
   const handleViewGroupTrip = (groupId: string) => {
@@ -408,32 +407,32 @@ export default function App() {
     console.log('Viewing group trip:', groupId);
     if (groupData) {
       setCurrentView('group-celebration');
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      scrollToTop();
     }
   };
 
   const handleStartTourTrips = () => {
     setTourTripBooking(null);
     setCurrentView('tour-trips');
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    scrollToTop();
   };
 
   const handleAccessProviderPortal = () => {
     setCurrentView('provider-portal');
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    scrollToTop();
   };
 
   const handleNextStep = () => {
     if (currentStep < totalSteps) {
       setCurrentStep(currentStep + 1);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      scrollToTop();
     }
   };
 
   const handlePrevStep = () => {
     if (currentStep > 1) {
       setCurrentStep(currentStep - 1);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      scrollToTop();
     }
   };
 
@@ -545,7 +544,7 @@ export default function App() {
           onComplete={handleGroupSanctuaryComplete}
           onBack={() => {
             setCurrentView('group-questionnaire');
-            window.scrollTo({ top: 0, behavior: 'smooth' });
+            scrollToTop();
           }}
         />
         <Toaster />

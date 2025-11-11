@@ -27,12 +27,13 @@ export function Navigation({ onLogoClick }: NavigationProps) {
         className="relative w-full bg-white/95 backdrop-blur-md border-b"
         style={{ 
           borderColor: 'var(--bt-charcoal)',
-          borderWidth: '1px'
+          borderWidth: '1px',
+          willChange: 'transform, opacity'
         }}
       >
-        <div className="max-w-7xl mx-auto px-2 sm:px-4">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8">
           <div className="flex items-center justify-between h-12 sm:h-14">
-            {/* Logo - Tiny and at edge */}
+            {/* Logo - Responsive sizing for better visibility and accessibility */}
             <motion.button
               onClick={onLogoClick}
               className="flex items-center"
@@ -42,7 +43,8 @@ export function Navigation({ onLogoClick }: NavigationProps) {
               <img 
                 src={logoImage} 
                 alt="The Beauty Trip" 
-                style={{ height: '10px', width: 'auto' }}
+                className="h-8 sm:h-10 w-auto"
+                style={{ maxHeight: '40px' }}
               />
             </motion.button>
 

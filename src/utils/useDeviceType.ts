@@ -13,72 +13,56 @@ interface DeviceInfo {
 }
 
 /**
+ * Detect device information based on window dimensions
+ * Breakpoints: Mobile < 768px, Tablet 768-1024px, Desktop > 1024px
+ */
+const detectDeviceInfo = (): DeviceInfo => {
+  if (typeof window === 'undefined') {
+    return {
+      type: 'desktop',
+      isMobile: false,
+      isTablet: false,
+      isDesktop: true,
+      isTouch: false,
+      screenWidth: 1920,
+      screenHeight: 1080
+    };
+  }
+
+  const width = window.innerWidth;
+  const height = window.innerHeight;
+  const isTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+  
+  let type: DeviceType = 'desktop';
+  if (width < 768) {
+    type = 'mobile';
+  } else if (width < 1024) {
+    type = 'tablet';
+  }
+
+  return {
+    type,
+    isMobile: type === 'mobile',
+    isTablet: type === 'tablet',
+    isDesktop: type === 'desktop',
+    isTouch,
+    screenWidth: width,
+    screenHeight: height
+  };
+};
+
+/**
  * Custom hook to detect device type and capabilities
  * Breakpoints: Mobile < 768px, Tablet 768-1024px, Desktop > 1024px
  */
 export function useDeviceType(): DeviceInfo {
-  const [deviceInfo, setDeviceInfo] = useState<DeviceInfo>(() => {
-    // Initial state on mount
-    if (typeof window === 'undefined') {
-      return {
-        type: 'desktop',
-        isMobile: false,
-        isTablet: false,
-        isDesktop: true,
-        isTouch: false,
-        screenWidth: 1920,
-        screenHeight: 1080
-      };
-    }
-
-    const width = window.innerWidth;
-    const height = window.innerHeight;
-    const isTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
-    
-    let type: DeviceType = 'desktop';
-    if (width < 768) {
-      type = 'mobile';
-    } else if (width < 1024) {
-      type = 'tablet';
-    }
-
-    return {
-      type,
-      isMobile: type === 'mobile',
-      isTablet: type === 'tablet',
-      isDesktop: type === 'desktop',
-      isTouch,
-      screenWidth: width,
-      screenHeight: height
-    };
-  });
+  const [deviceInfo, setDeviceInfo] = useState<DeviceInfo>(detectDeviceInfo);
 
   useEffect(() => {
-    const handleResize = () => {
-      const width = window.innerWidth;
-      const height = window.innerHeight;
-      const isTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
-      
-      let type: DeviceType = 'desktop';
-      if (width < 768) {
-        type = 'mobile';
-      } else if (width < 1024) {
-        type = 'tablet';
-      }
-
-      setDeviceInfo({
-        type,
-        isMobile: type === 'mobile',
-        isTablet: type === 'tablet',
-        isDesktop: type === 'desktop',
-        isTouch,
-        screenWidth: width,
-        screenHeight: height
-      });
-    };
-
+    const handleResize = () => setDeviceInfo(detectDeviceInfo());
+    
     // Debounce resize events for performance
-    let timeoutId: NodeJS.Timeout;
+    let timeoutId: ReturnType<typeof setTimeout>;
     const debouncedResize = () => {
       clearTimeout(timeoutId);
       timeoutId = setTimeout(handleResize, 150);
