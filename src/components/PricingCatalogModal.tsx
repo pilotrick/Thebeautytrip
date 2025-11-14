@@ -1,4 +1,4 @@
-import { Dialog, DialogContent } from "./ui/dialog";
+import { Dialog, DialogContent, DialogTitle, DialogDescription } from "./ui/dialog";
 import { PricingCatalog } from "./PricingCatalog";
 import { X } from "lucide-react";
 
@@ -15,6 +15,14 @@ export function PricingCatalogModal({ open, onOpenChange, onBookNow }: PricingCa
         className="max-w-[100vw] w-full h-full max-h-screen p-0 gap-0 border-0"
         style={{ backgroundColor: 'var(--bt-cream)' }}
       >
+        {/* Visually hidden but accessible title and description */}
+        <DialogTitle className="sr-only">
+          Services & Pricing Catalog
+        </DialogTitle>
+        <DialogDescription className="sr-only">
+          Browse our complete menu of luxury aesthetic treatments and wellness services in the Dominican Republic
+        </DialogDescription>
+
         {/* Close Button */}
         <button
           onClick={() => onOpenChange(false)}

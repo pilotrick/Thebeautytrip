@@ -162,6 +162,17 @@
     font-family: var(--font-grotesk);
     letter-spacing: -0.02em;
   }
+
+  /* Cursor styles for interactive elements */
+  button:not(:disabled),
+  a[href],
+  [role="button"] {
+    cursor: pointer;
+  }
+
+  button:disabled {
+    cursor: not-allowed;
+  }
 }
 
 /**

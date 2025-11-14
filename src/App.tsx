@@ -17,9 +17,9 @@ import { TransformationPortal } from "./components/TransformationPortal";
 import { TourTrips } from "./components/TourTrips";
 import { TourTripCelebration } from "./components/TourTripCelebration";
 import { ProviderPortal } from "./components/ProviderPortal";
-import { CollaborationHub } from "./components/CollaborationHub";
 import { LanguageProvider } from "./i18n/LanguageContext";
 import { LanguageSelector } from "./components/LanguageSelector";
+import { LuxuryTicker } from "./components/LuxuryTicker";
 import { Toaster } from "./components/ui/sonner";
 import { SupabaseStatus } from "./components/SupabaseStatus";
 import { getSession } from "./utils/auth";
@@ -45,7 +45,7 @@ export type TourTripBooking = {
 };
 
 export default function App() {
-  const [currentView, setCurrentView] = useState<'home' | 'builder' | 'booking-confirmed' | 'group-questionnaire' | 'group-sanctuary' | 'group-celebration' | 'group-thankyou' | 'join-group' | 'login' | 'portal' | 'tour-trips' | 'tour-celebration' | 'provider-portal' | 'collaboration-hub'>('home');
+  const [currentView, setCurrentView] = useState<'home' | 'builder' | 'booking-confirmed' | 'group-questionnaire' | 'group-sanctuary' | 'group-celebration' | 'group-thankyou' | 'join-group' | 'login' | 'portal' | 'tour-trips' | 'tour-celebration' | 'provider-portal'>('home');
   const [currentStep, setCurrentStep] = useState(1);
   const [userEmail, setUserEmail] = useState<string>('');
   const [tourTripBooking, setTourTripBooking] = useState<TourTripBooking | null>(null);
@@ -402,11 +402,6 @@ export default function App() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const handleAccessCollaborationHub = () => {
-    setCurrentView('collaboration-hub');
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-
   const handleNextStep = () => {
     if (currentStep < totalSteps) {
       setCurrentStep(currentStep + 1);
@@ -458,26 +453,17 @@ export default function App() {
     );
   }
 
-  if (currentView === 'collaboration-hub') {
-    return (
-      <LanguageProvider>
-        <CollaborationHub onBack={handleReturnHome} />
-        <Toaster />
-      </LanguageProvider>
-    );
-  }
-
   if (currentView === 'home') {
     return (
       <LanguageProvider>
         <LanguageSelector />
+        <LuxuryTicker />
         <HomePage 
           onStartBuilder={handleStartBuilder} 
           onStartGroupFlow={handleStartGroupFlow}
           onAccessPortal={handleAccessPortal}
           onStartTourTrips={handleStartTourTrips}
           onAccessProviderPortal={handleAccessProviderPortal}
-          onAccessCollaborationHub={handleAccessCollaborationHub}
         />
         <Toaster />
         <SupabaseStatus />
@@ -628,6 +614,7 @@ export default function App() {
           mode={isTourTripBuilder ? 'tour' : 'journey'}
         />
         <Toaster />
+        <LuxuryTicker />
 
       {/* Step 1: Welcome - Skip for tour trip builder */}
       {currentStep === 1 && !isTourTripBuilder && (

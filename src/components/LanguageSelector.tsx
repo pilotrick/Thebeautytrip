@@ -12,7 +12,7 @@ export function LanguageSelector() {
   ];
 
   return (
-    <div className="fixed top-6 right-6 z-50">
+    <div className="fixed top-20 sm:top-24 right-4 sm:right-6 z-[60]">
       <div className="relative group">
         <button
           className="flex items-center gap-2 px-4 py-2 bg-white border-2 rounded-full shadow-lg transition-all hover:scale-105"

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Menu, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-import logoImage from "figma:asset/14e163fabd1036dfe849086350b27b4780fe718d.png";
+import { Logo } from './Logo';
 
 interface NavigationProps {
   onLogoClick?: () => void;
@@ -35,15 +35,11 @@ export function Navigation({ onLogoClick }: NavigationProps) {
             {/* Logo - Tiny and at edge */}
             <motion.button
               onClick={onLogoClick}
-              className="flex items-center"
+              className="flex items-center -ml-[52px]"
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
             >
-              <img 
-                src={logoImage} 
-                alt="The Beauty Trip" 
-                style={{ height: '10px', width: 'auto' }}
-              />
+              <Logo size="md" className="scale-[0.52]" />
             </motion.button>
 
             {/* Desktop Navigation Links */}

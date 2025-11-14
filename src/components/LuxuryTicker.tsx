@@ -23,12 +23,12 @@ export function LuxuryTicker() {
 
   return (
     <div 
-      className="fixed top-16 sm:top-20 left-0 right-0 w-full overflow-hidden z-40"
+      className="fixed top-14 sm:top-16 left-0 right-0 w-full overflow-hidden z-[45]"
       style={{ 
-        backgroundColor: 'rgba(17, 17, 17, 0.5)',
+        backgroundColor: 'rgba(17, 17, 17, 0.6)',
         backdropFilter: 'blur(10px)',
         WebkitBackdropFilter: 'blur(10px)',
-        borderBottom: '1px solid rgba(184, 152, 91, 0.1)'
+        borderBottom: '1px solid rgba(184, 152, 91, 0.2)'
       }}
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
@@ -37,7 +37,7 @@ export function LuxuryTicker() {
       <motion.div
         className="flex whitespace-nowrap py-2.5 sm:py-3"
         style={{
-          color: 'rgba(247, 247, 247, 0.75)',
+          color: 'rgba(247, 247, 247, 0.85)',
           fontSize: '0.8125rem',
           fontWeight: '500',
           letterSpacing: '0.1em',
