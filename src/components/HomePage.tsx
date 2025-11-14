@@ -18,6 +18,10 @@ import { ImprovedBeforeAfter } from "./ImprovedBeforeAfter";
 import { DynamicItinerary } from "./DynamicItinerary";
 import { useScrollOptimized } from "../utils/useScrollOptimized";
 import { useIsMobile } from "../utils/useReducedMotion";
+import { CountdownTimer } from "./CountdownTimer";
+import { SpotCounter } from "./SpotCounter";
+import { EarlyAccessModal } from "./EarlyAccessModal";
+
 
 // Animated Counter Component
 function AnimatedCounter({ end, duration = 2000, suffix = "" }: { end: number; duration?: number; suffix?: string }) {
@@ -603,15 +607,24 @@ interface HomePageProps {
   onAccessPortal?: () => void;
   onStartTourTrips?: () => void;
   onAccessProviderPortal?: () => void;
+  onAccessCollaborationHub?: () => void;
 }
 
-export function HomePage({ onStartBuilder, onStartGroupFlow, onAccessPortal, onStartTourTrips, onAccessProviderPortal }: HomePageProps) {
+export function HomePage({ onStartBuilder, onStartGroupFlow, onAccessPortal, onStartTourTrips, onAccessProviderPortal, onAccessCollaborationHub }: HomePageProps) {
   const { t } = useLanguage();
   const { scrollY } = useScroll();
   const [showSpinWheel, setShowSpinWheel] = useState(false);
   const [showExplosion, setShowExplosion] = useState(false);
   const [hasClaimed, setHasClaimed] = useState(false);
   const [showPricingModal, setShowPricingModal] = useState(false);
+  const [showEarlyAccessModal, setShowEarlyAccessModal] = useState(false);
+  
+  // Launch date - set to 30 days from now
+  const launchDate = useMemo(() => {
+    const date = new Date();
+    date.setDate(date.getDate() + 30);
+    return date;
+  }, []);
   
   // Parallax effect for hero
   const heroY = useTransform(scrollY, [0, 500], [0, 150]);
@@ -646,6 +659,11 @@ export function HomePage({ onStartBuilder, onStartGroupFlow, onAccessPortal, onS
     }
   }, []);
 
+  // Handler for locked features
+  const handleLockedFeatureClick = () => {
+    setShowEarlyAccessModal(true);
+  };
+
   return (
     <div className="min-h-screen" style={{ margin: 0, padding: 0, width: '100%', overflowX: 'hidden' }}>
       {/* Gift Explosion Effect */}
@@ -663,6 +681,12 @@ export function HomePage({ onStartBuilder, onStartGroupFlow, onAccessPortal, onS
           setShowExplosion(true);
           setHasClaimed(true);
         }}
+      />
+
+      {/* Early Access Modal */}
+      <EarlyAccessModal 
+        isOpen={showEarlyAccessModal}
+        onClose={() => setShowEarlyAccessModal(false)}
       />
 
       {/* Scroll Progress Bar */}
@@ -771,6 +795,23 @@ export function HomePage({ onStartBuilder, onStartGroupFlow, onAccessPortal, onS
               In Dominican Republic
             </motion.p>
 
+            {/* Vetting Badge */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.6, delay: 1.2 }}
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-full backdrop-blur-md"
+              style={{ 
+                backgroundColor: 'rgba(255, 255, 255, 0.15)', 
+                border: '1px solid rgba(255, 255, 255, 0.3)',
+                backdropFilter: 'blur(10px)'
+              }}
+            >
+              <span className="text-white text-sm font-medium">
+                ✓ Vetting in Progress: Building the Gold Standard
+              </span>
+            </motion.div>
+
             {/* CTA Button */}
             <motion.button
               onClick={() => setShowPricingModal(true)}
@@ -798,6 +839,154 @@ export function HomePage({ onStartBuilder, onStartGroupFlow, onAccessPortal, onS
 
         {/* Scroll Indicator */}
         <ScrollIndicator />
+      </section>
+
+      {/* 🔥 FOUNDING MEMBER PLEDGE SECTION - Above the Fold Priority */}
+      <section className="relative py-12 sm:py-16 md:py-20 px-4 sm:px-6 z-10" style={{ backgroundColor: 'var(--bt-cream)' }}>
+        <div className="max-w-6xl mx-auto">
+          {/* Headline */}
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.8 }}
+            className="text-center mb-8 sm:mb-12"
+          >
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4" style={{ color: 'var(--bt-charcoal)' }}>
+              Become a Founding Member
+            </h2>
+            <p className="text-lg sm:text-xl md:text-2xl" style={{ color: 'var(--bt-charcoal)', opacity: 0.8 }}>
+              Join the elite few shaping the future of beauty travel
+            </p>
+          </motion.div>
+
+          {/* Countdown Timer & Spot Counter Grid */}
+          <div className="grid md:grid-cols-2 gap-6 sm:gap-8 mb-10">
+            <motion.div
+              initial={{ opacity: 0, x: -30 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6, delay: 0.2 }}
+              className="flex flex-col items-center justify-center bg-white rounded-2xl shadow-xl p-6 sm:p-8 border-2"
+              style={{ borderColor: 'var(--bt-gold)' }}
+            >
+              <h3 className="text-lg sm:text-xl font-semibold mb-4" style={{ color: 'var(--bt-charcoal)' }}>
+                Launch Countdown
+              </h3>
+              <CountdownTimer targetDate={launchDate} />
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, x: 30 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6, delay: 0.3 }}
+              className="flex items-center justify-center"
+            >
+              <SpotCounter totalSpots={500} />
+            </motion.div>
+          </div>
+
+          {/* Value Proposition */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6, delay: 0.4 }}
+            className="bg-white rounded-2xl shadow-2xl p-8 sm:p-10 md:p-12 mb-8 border-2"
+            style={{ borderColor: 'var(--bt-gold)' }}
+          >
+            <div className="text-center mb-6">
+              <div className="text-5xl sm:text-6xl md:text-7xl font-bold mb-2" style={{ color: 'var(--bt-gold)' }}>
+                $200
+              </div>
+              <div className="text-xl sm:text-2xl mb-4" style={{ color: 'var(--bt-charcoal)' }}>
+                One-Time Investment
+              </div>
+              <div className="inline-block px-6 py-3 rounded-full text-2xl sm:text-3xl font-bold"
+                style={{ backgroundColor: 'rgba(184, 152, 91, 0.1)', color: 'var(--bt-gold)', border: '2px solid var(--bt-gold)' }}>
+                Get $500 Credit + Lifetime Perks
+              </div>
+            </div>
+
+            <div className="grid sm:grid-cols-2 gap-4 sm:gap-6 mb-8">
+              <div className="flex items-start gap-3">
+                <CheckCircle2 className="w-6 h-6 flex-shrink-0 mt-1" style={{ color: 'var(--bt-gold)' }} />
+                <div>
+                  <div className="font-semibold mb-1" style={{ color: 'var(--bt-charcoal)' }}>
+                    $500 Travel Credit
+                  </div>
+                  <div className="text-sm" style={{ color: 'var(--bt-charcoal)', opacity: 0.7 }}>
+                    2.5x your investment value
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-3">
+                <CheckCircle2 className="w-6 h-6 flex-shrink-0 mt-1" style={{ color: 'var(--bt-gold)' }} />
+                <div>
+                  <div className="font-semibold mb-1" style={{ color: 'var(--bt-charcoal)' }}>
+                    Lifetime Priority Access
+                  </div>
+                  <div className="text-sm" style={{ color: 'var(--bt-charcoal)', opacity: 0.7 }}>
+                    First pick of destinations & dates
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-3">
+                <CheckCircle2 className="w-6 h-6 flex-shrink-0 mt-1" style={{ color: 'var(--bt-gold)' }} />
+                <div>
+                  <div className="font-semibold mb-1" style={{ color: 'var(--bt-charcoal)' }}>
+                    Exclusive Community
+                  </div>
+                  <div className="text-sm" style={{ color: 'var(--bt-charcoal)', opacity: 0.7 }}>
+                    Private forum & member events
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-3">
+                <CheckCircle2 className="w-6 h-6 flex-shrink-0 mt-1" style={{ color: 'var(--bt-gold)' }} />
+                <div>
+                  <div className="font-semibold mb-1" style={{ color: 'var(--bt-charcoal)' }}>
+                    Special Member Pricing
+                  </div>
+                  <div className="text-sm" style={{ color: 'var(--bt-charcoal)', opacity: 0.7 }}>
+                    Lifetime discounts on all services
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* CTA Button */}
+            <motion.button
+              onClick={onAccessCollaborationHub}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              className="w-full py-5 rounded-xl text-xl sm:text-2xl font-bold text-white shadow-2xl"
+              style={{ backgroundColor: 'var(--bt-gold)' }}
+            >
+              🔒 Lock In Your Spot & Invest $200
+            </motion.button>
+
+            <p className="text-center text-sm mt-4" style={{ color: 'var(--bt-charcoal)', opacity: 0.6 }}>
+              Limited to 500 founding members only
+            </p>
+          </motion.div>
+
+          {/* Trust Indicators */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6, delay: 0.5 }}
+            className="text-center text-sm"
+            style={{ color: 'var(--bt-charcoal)', opacity: 0.6 }}
+          >
+            ✓ Secure Payment • ✓ Money-Back Guarantee • ✓ Instant Access to Collaboration Hub
+          </motion.div>
+        </div>
       </section>
 
       {/* Decision Gate Section */}
@@ -951,7 +1140,7 @@ export function HomePage({ onStartBuilder, onStartGroupFlow, onAccessPortal, onS
                 </p>
               </div>
               <motion.button
-                onClick={onStartGroupFlow}
+                onClick={handleLockedFeatureClick}
                 className="w-full px-8 py-4 text-white transition-all duration-300 rounded-full text-center"
                 style={{ 
                   backgroundColor: 'var(--bt-charcoal)',
@@ -1025,7 +1214,7 @@ export function HomePage({ onStartBuilder, onStartGroupFlow, onAccessPortal, onS
                   </div>
                 </div>
                 <motion.button
-                  onClick={onStartTourTrips}
+                  onClick={handleLockedFeatureClick}
                   className="w-full px-8 py-4 text-white transition-all duration-300 rounded-full text-center relative z-10 shadow-lg"
                   style={{ 
                     backgroundColor: '#D4A5A5',
@@ -1254,11 +1443,44 @@ export function HomePage({ onStartBuilder, onStartGroupFlow, onAccessPortal, onS
         </div>
       </section>
 
+      {/* 🔥 MID-PAGE FOUNDING MEMBER CTA */}
+      <section className="py-16 sm:py-20 px-4 sm:px-6" style={{ backgroundColor: 'var(--bt-gold)' }}>
+        <div className="max-w-4xl mx-auto text-center">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+          >
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 text-white">
+              Don't Miss Your Chance
+            </h2>
+            <p className="text-xl sm:text-2xl mb-8 text-white/90">
+              Only <span className="font-bold">500 Founding Member spots</span> available
+            </p>
+            
+            <motion.button
+              onClick={onAccessCollaborationHub}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              className="px-12 py-5 rounded-xl text-xl sm:text-2xl font-bold shadow-2xl"
+              style={{ backgroundColor: 'white', color: 'var(--bt-gold)' }}
+            >
+              🔒 Lock In Your Spot & Invest $200
+            </motion.button>
+
+            <p className="text-white/80 text-sm mt-6">
+              Get $500 Credit + Lifetime Priority Access
+            </p>
+          </motion.div>
+        </div>
+      </section>
+
       {/* Pricing Catalog Modal */}
       <PricingCatalogModal 
         open={showPricingModal}
         onOpenChange={setShowPricingModal}
-        onBookNow={() => onStartBuilder()}
+        onBookNow={handleLockedFeatureClick}
       />
 
       {/* VIP Upgrade Perks Section */}
@@ -1575,7 +1797,7 @@ export function HomePage({ onStartBuilder, onStartGroupFlow, onAccessPortal, onS
             >
               Popular Retreat Packages
             </motion.h3>
-            <PackageCarousel onSelectPackage={onStartBuilder} />
+            <PackageCarousel onSelectPackage={handleLockedFeatureClick} />
           </div>
         </div>
       </section>
@@ -1757,7 +1979,7 @@ export function HomePage({ onStartBuilder, onStartGroupFlow, onAccessPortal, onS
             ].map((doctor, index) => (
               <motion.div
                 key={index}
-                className="border p-6 hover:shadow-xl transition-all duration-300 bg-white"
+                className="border p-6 hover:shadow-xl transition-all duration-300 bg-white relative overflow-hidden"
                 style={{ borderColor: 'var(--bt-gold)' }}
                 initial={{ opacity: 0, y: 30 }}
                 whileInView={{ opacity: 1, y: 0 }}
@@ -1765,7 +1987,21 @@ export function HomePage({ onStartBuilder, onStartGroupFlow, onAccessPortal, onS
                 transition={{ duration: 0.6, delay: index * 0.15 }}
                 whileHover={{ y: -5 }}
               >
-                <div className="w-24 h-24 mx-auto mb-4 rounded-full overflow-hidden border-4" style={{ borderColor: 'var(--bt-gold)' }}>
+                {/* Vetting in Progress Badge */}
+                <div className="absolute top-3 right-3 px-3 py-1 rounded-full text-xs font-semibold bg-white shadow-md z-10"
+                  style={{ color: 'var(--bt-gold)', border: '1px solid var(--bt-gold)' }}>
+                  ✓ Vetting
+                </div>
+
+                <div className="w-24 h-24 mx-auto mb-4 rounded-full overflow-hidden border-4 relative" style={{ borderColor: 'var(--bt-gold)' }}>
+                  <ImageWithFallback
+                    src={doctor.image}
+                    alt={doctor.name}
+                    className="w-full h-full object-cover"
+                  />
+                  {/* Subtle overlay */}
+                  <div className="absolute inset-0 bg-gradient-to-b from-transparent to-white/20"></div>
+                </div>
                   <ImageWithFallback
                     src={doctor.image}
                     alt={doctor.name}
@@ -2064,6 +2300,65 @@ export function HomePage({ onStartBuilder, onStartGroupFlow, onAccessPortal, onS
 
       {/* Footer Ticker */}
       <FooterTicker />
+
+      {/* 🔥 BOTTOM FOUNDING MEMBER CTA - Final Push */}
+      <section className="py-20 px-4 sm:px-6" style={{ backgroundColor: 'var(--bt-cream)' }}>
+        <div className="max-w-5xl mx-auto">
+          <div className="bg-white rounded-3xl shadow-2xl p-8 sm:p-12 md:p-16 border-4" style={{ borderColor: 'var(--bt-gold)' }}>
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6 }}
+              className="text-center"
+            >
+              <div className="mb-6">
+                <span className="inline-block px-6 py-2 rounded-full text-sm font-semibold mb-6"
+                  style={{ backgroundColor: 'rgba(184, 152, 91, 0.1)', color: 'var(--bt-gold)', border: '2px solid var(--bt-gold)' }}>
+                  ⚡ LIMITED TIME OFFER
+                </span>
+              </div>
+
+              <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-6" style={{ color: 'var(--bt-charcoal)' }}>
+                Ready to Secure Your Future in Beauty Travel?
+              </h2>
+              
+              <p className="text-xl sm:text-2xl mb-4" style={{ color: 'var(--bt-charcoal)', opacity: 0.8 }}>
+                Invest <span className="font-bold" style={{ color: 'var(--bt-gold)' }}>$200</span> today
+              </p>
+              
+              <p className="text-lg sm:text-xl mb-8" style={{ color: 'var(--bt-charcoal)', opacity: 0.7 }}>
+                Receive <span className="font-bold">$500 in travel credit</span> + lifetime founding member benefits
+              </p>
+
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-8">
+                <SpotCounter totalSpots={500} />
+                <div className="hidden sm:block w-px h-24 bg-gray-300"></div>
+                <div className="text-center">
+                  <div className="text-sm font-semibold mb-2" style={{ color: 'var(--bt-charcoal)' }}>
+                    Launch Countdown
+                  </div>
+                  <CountdownTimer targetDate={launchDate} className="scale-90" />
+                </div>
+              </div>
+
+              <motion.button
+                onClick={onAccessCollaborationHub}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                className="w-full sm:w-auto px-12 py-6 rounded-xl text-2xl font-bold text-white shadow-2xl"
+                style={{ backgroundColor: 'var(--bt-gold)' }}
+              >
+                🔒 Lock In Your Spot Now
+              </motion.button>
+
+              <p className="text-sm mt-6" style={{ color: 'var(--bt-charcoal)', opacity: 0.6 }}>
+                ✓ Secure Payment • ✓ Instant Hub Access • ✓ Money-Back Guarantee
+              </p>
+            </motion.div>
+          </div>
+        </div>
+      </section>
 
       {/* Footer */}
       <footer className="py-20 px-6" style={{ backgroundColor: 'var(--bt-charcoal)' }}>
